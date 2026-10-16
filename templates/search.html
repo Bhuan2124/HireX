@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Search candidates &ndash; ResumeX{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="page-head">
+    <a class="back" href="/jobs/{{ job.id }}/results">Back to ranking</a>
+    <h2>Search candidates</h2>
+    <p class="muted" style="margin:0">Searching {{ total }} resumes for {{ job.title }}.</p>
+  </div>
+  <form method="get" action="/jobs/{{ job.id }}/search" class="search" role="search" style="max-width:520px; margin-bottom:20px">
+    <input type="text" name="q" value="{{ q }}" placeholder="Skill, job title or name" aria-label="Search" autofocus>
+    <button class="btn">Search</button>
+  </form>
+  {% if q and not hits %}<div class="alert info">No candidate matches &ldquo;{{ q }}&rdquo;. Try a broader skill name.</div>{% endif %}
+  {% if hits %}
+  <div class="ranklist">
+    {% for c in hits %}
+    <div class="cand">
+      <span class="rk num">{{ c.rank }}</span>
+      <div><h4><a href="/candidates/{{ c.id }}">{{ c.name }}</a></h4>
+        <div class="meta"><span>{{ c.current_title }}</span><span>{{ c.years_experience|years }}</span></div>
+        <div class="chips">{% for s in c.skill_list[:8] %}<span class="chip {{ 'hit' if q|lower in s|lower }}">{{ s }}</span>{% endfor %}</div></div>
+      <div class="sc"><div class="score-lg num">{{ c.match_percent }}%</div></div>
+      <div class="acts"><a href="/candidates/{{ c.id }}" class="btn sm">View candidate</a></div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Upload resumes for {{ job.title }} &ndash; ResumeX{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <div class="page-head">
+    {% set step = 3 %}{% include "_stepper.html" %}
+    <h2>Upload resumes</h2>
+    <p class="muted" style="margin:0">{{ job.title }}, screened against {{ job.requirements|length }} requirements.</p>
+  </div>
+
+  {% if error %}<div class="alert bad">{{ error }}</div>{% endif %}
+  {% if existing %}<div class="alert info">This job already has {{ existing }} ranked candidates. A new upload replaces them.</div>{% endif %}
+
+  <form method="post" action="/jobs/{{ job.id }}/upload" enctype="multipart/form-data">
+    <div class="drop" id="dropzone" tabindex="0" role="button" aria-label="Choose resume files">
+      <h3>Drop resumes here</h3>
+      <p>or click to choose files. PDF, Word (.docx) and text files, as many as you need.</p>
+      <input type="file" id="file-input" name="files" multiple accept=".pdf,.docx,.txt" hidden>
+    </div>
+    <div class="files" id="filelist"></div>
+    <div class="spread" style="margin-top:18px">
+      <span id="file-count" class="muted small">No files chosen yet</span>
+      <button class="btn lg" id="start-screening" disabled>Start screening</button>
+    </div>
+  </form>
+
+  <div class="engine">
+    <span class="dot {{ '' if sbert.loaded else 'off' }}"></span>
+    {% if sbert.loaded %}
+      Semantic matching with Sentence-BERT {{ sbert.model }} on {{ sbert.device|upper }}.
+    {% else %}
+      Sentence-BERT is not loaded. Restart the server and check the terminal.
+    {% endif %}
+    {% if ml.relevance_model %}Relevance model: {{ ml.relevance_model }}.{% endif %}
+  </div>
+</div>
+{% endblock %}

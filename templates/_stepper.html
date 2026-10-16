@@ -1,0 +1,7 @@
+{# include with: {% set step = 2 %}{% include "_stepper.html" %} #}
+<ol class="stepper" aria-label="Job setup progress">
+  {% for label in ['Job profile', 'Requirements', 'Upload resumes', 'Ranking'] %}
+  <li class="{{ 'on' if loop.index == step else ('done' if loop.index < step else '') }}"
+      {% if loop.index == step %}aria-current="step"{% endif %}>{{ label }}</li>
+  {% endfor %}
+</ol>

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Ranking for {{ job.title }} &ndash; ResumeX{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="page-head">
+    {% set step = 4 %}{% include "_stepper.html" %}
+    <div class="spread">
+      <div>
+        <h2>Top candidates</h2>
+        <p class="muted" style="margin:0">{{ job.title }}. {{ all_count }} resumes analysed, {{ eligible }} meet the hard filters{% if filtered_out %}, {{ filtered_out }} don't{% endif %}.</p>
+      </div>
+      <div class="row">
+        <a id="compare-link" data-base="/jobs/{{ job.id }}/compare" href="#" class="btn" style="display:none">Compare selected</a>
+        <a href="/jobs/{{ job.id }}/requirements" class="btn quiet">Adjust weights</a>
+        <a href="/jobs/{{ job.id }}/analytics" class="btn quiet">Analytics</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <nav class="seg" aria-label="Filter candidates">
+      {% for key, label in [('all','Eligible'),('strong','Strong match'),('gap','Skill gaps'),
+                            ('shortlisted','Shortlisted'),('filtered','Filtered out')] %}
+      <a href="/jobs/{{ job.id }}/results?view={{ key }}&top={{ top }}" class="{{ 'on' if view == key }}">{{ label }}</a>
+      {% endfor %}
+    </nav>
+    <nav class="seg" aria-label="How many to show">
+      {% for n in [10, 20, 50] %}
+      <a href="/jobs/{{ job.id }}/results?view={{ view }}&top={{ n }}" class="{{ 'on' if top == n }}">Top {{ n }}</a>
+      {% endfor %}
+    </nav>
+    <form method="get" action="/jobs/{{ job.id }}/search" class="search" role="search">
+      <input type="text" name="q" placeholder="Search skills, titles or names" aria-label="Search candidates">
+      <button class="btn quiet sm">Search</button>
+    </form>
+  </div>
+
+  {% if common_gaps %}
+  <div class="gaps"><span>Skills most often missing in this pool:</span>
+    {% for skill, n in common_gaps %}<span class="tag missing">{{ skill }} <span class="num">{{ n }}</span></span>{% endfor %}
+  </div>
+  {% endif %}
+
+  {% if not candidates %}
+  <div class="panel empty">
+    <h3>No candidates in this view</h3>
+    <p>{% if view == 'shortlisted' %}Shortlist candidates from their detail page and they'll appear here.
+       {% elif view == 'filtered' %}Every candidate meets the hard filters.
+       {% else %}Try another filter, or upload resumes for this job.{% endif %}</p>
+    <a href="/jobs/{{ job.id }}/results" class="btn quiet">Show eligible candidates</a>
+  </div>
+  {% else %}
+  <div class="ranklist">
+    {% for c in candidates %}
+    {% set b = c.overall_score|band %}
+    <div class="cand {{ 'top' if c.rank <= 3 and c.passes_filters }}">
+      <span class="rk num">{{ c.rank }}</span>
+      <div>
+        <h4><a href="/candidates/{{ c.id }}">{{ c.name }}</a>
+          {% if c.stage == 'Shortlisted' %}<span class="tag strong">Shortlisted</span>{% endif %}</h4>
+        <div class="meta">
+          <span>{{ c.current_title or 'Title not found' }}</span>
+          <span>{{ c.years_experience|years }}</span>
+          <span>{{ c.degree or 'Degree not found' }}</span>
+        </div>
+        <div class="chips">
+          {% set matched = c.evidence|rejectattr('status', 'equalto', 'Missing')|list %}
+          {% set gaps = c.evidence|selectattr('status', 'equalto', 'Missing')|list %}
+          {% for e in matched[:6] %}<span class="chip hit">{{ e.skill }}</span>{% endfor %}
+          {% if gaps %}<span class="chip">{{ gaps|length }} missing</span>{% endif %}
+        </div>
+        {% if not c.passes_filters %}<div class="flag">Doesn't meet filters: {{ c.filter_reason }}</div>{% endif %}
+      </div>
+      <div class="sc">
+        <div class="score-lg num">{{ c.match_percent }}%</div>
+        <div class="meter {{ b }}"><i style="width:{{ c.match_percent }}%"></i></div>
+      </div>
+      <div class="acts">
+        <a href="/candidates/{{ c.id }}" class="btn sm">View candidate</a>
+        <label class="cmp"><input type="checkbox" class="cmp-box" value="{{ c.id }}"> Compare</label>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

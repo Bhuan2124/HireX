@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}ResumeX{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Unbounded:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+{% set nav = nav|default('') %}
+{% if request.session.get('recruiter_id') %}
+<header class="topbar">
+  <div class="inner">
+    <a class="wordmark" href="/dashboard">ResumeX</a>
+    <nav>
+      <a href="/dashboard" class="{{ 'on' if nav == 'jobs' }}">Jobs</a>
+      <a href="/jobs/new" class="{{ 'on' if nav == 'new' }}">Create job</a>
+    </nav>
+    <div class="user">
+      <span>{{ request.session.get('recruiter_name','') }}</span>
+      <a href="/logout" class="btn quiet sm">Log out</a>
+    </div>
+  </div>
+</header>
+{% endif %}
+<main>{% block content %}{% endblock %}</main>
+<footer class="foot"><div class="wrap"><span>ResumeX</span><span>Understand, match, rank, explain.</span></div></footer>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

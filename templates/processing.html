@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Screening resumes &ndash; ResumeX{% endblock %}
+{% block content %}
+<div class="proc" id="progress-box" data-job="{{ job.id }}">
+  <p class="muted" style="margin-bottom:10px">Screening for {{ job.title }}</p>
+  <div class="score-xl num" id="pct" aria-live="polite">0%</div>
+  <div class="meter"><i id="pct-bar" style="width:0%"></i></div>
+  <ul class="stages" id="stage-list">
+    {% for s in stages %}<li data-stage="{{ s }}"><span>{{ s }}</span><span class="tick" aria-hidden="true"></span></li>{% endfor %}
+  </ul>
+  <p class="small muted" id="proc-note" style="margin-top:18px">Starting&hellip;</p>
+  <p class="small faint">You'll be taken to the ranking when screening finishes.</p>
+</div>
+{% endblock %}

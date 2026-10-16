@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Compare candidates &ndash; ResumeX{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="page-head">
+    <a class="back" href="/jobs/{{ job.id }}/results">Back to ranking</a>
+    <h2>Compare candidates</h2>
+    <p class="muted" style="margin:0">{{ job.title }}</p>
+  </div>
+  {% if candidates|length < 2 %}
+  <div class="panel empty"><h3>Pick at least two candidates</h3>
+    <p>Tick &ldquo;Compare&rdquo; next to two to four candidates on the ranking page.</p>
+    <a href="/jobs/{{ job.id }}/results" class="btn quiet">Go to ranking</a></div>
+  {% else %}
+  <div class="panel" style="overflow-x:auto; padding:10px 14px">
+    <table class="data">
+      <thead><tr><th></th>
+        {% for c in candidates %}<th><a href="/candidates/{{ c.id }}">{{ c.name }}</a><div class="faint" style="font-weight:400">Rank {{ c.rank }}</div></th>{% endfor %}</tr></thead>
+      <tbody>
+        <tr><td><strong>Overall match</strong></td>
+          {% for c in candidates %}<td><span class="score-md num">{{ c.match_percent }}%</span></td>{% endfor %}</tr>
+        <tr><td>Skills</td>{% for c in candidates %}<td class="num">{{ c.skill_score|pct }}</td>{% endfor %}</tr>
+        <tr><td>Experience</td>{% for c in candidates %}<td class="num">{{ c.experience_score|pct }} <span class="muted">({{ c.years_experience|years }})</span></td>{% endfor %}</tr>
+        <tr><td>Education</td>{% for c in candidates %}<td>{{ c.education_score|pct }} <span class="muted">({{ c.degree or 'not found' }})</span></td>{% endfor %}</tr>
+        <tr><td>Overall fit (SBERT)</td>{% for c in candidates %}<td class="num">{{ c.semantic_score|pct }}</td>{% endfor %}</tr>
+        <tr><td>Stage</td>{% for c in candidates %}<td>{{ c.stage }}</td>{% endfor %}</tr>
+        {% for s in req_skills %}
+        <tr><td>{{ s }}</td>{% for c in candidates %}{% set st = matrix[c.id][s] %}
+          <td><span class="tag {{ st|lower }}">{{ {'Strong':'Strong','Partial':'Mentioned','Missing':'Missing'}[st] }}</span></td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
