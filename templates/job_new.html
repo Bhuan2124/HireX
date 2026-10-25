@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% set nav = 'new' %}
+{% block title %}Create job &ndash; ResumeX{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <div class="page-head">
+    {% set step = 1 %}{% include "_stepper.html" %}
+    <h2>Create a job profile</h2>
+    <p class="muted" style="margin:0">Paste the whole job description. You'll review everything ResumeX finds on the next screen.</p>
+  </div>
+
+  <form method="post" action="/jobs/new" class="panel">
+    <div class="field"><label for="title">Job title</label>
+      <input id="title" type="text" name="title" placeholder="Machine Learning Engineer" required autofocus></div>
+    <div class="two">
+      <div class="field"><label for="company">Company</label>
+        <input id="company" type="text" name="company" placeholder="Acme Technologies"></div>
+      <div class="field"><label for="location">Location</label>
+        <input id="location" type="text" name="location" placeholder="Bengaluru, Remote or Hybrid"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="etype">Employment type</label>
+        <select id="etype" name="employment_type">
+          <option>Full-time</option><option>Part-time</option><option>Internship</option><option>Contract</option>
+        </select></div>
+      <div class="field"><label for="cat">Field</label>
+        <select id="cat" name="category">
+          {% for c in categories %}<option value="{{ c }}">{{ c|field }}</option>{% endfor %}
+        </select>
+        <div class="help">Used to tell whether a candidate comes from the same field.</div></div>
+    </div>
+    <div class="field"><label for="desc">Job description</label>
+      <textarea id="desc" name="description" required
+        placeholder="Paste the full job description here, including required skills, nice-to-haves, experience and education."></textarea>
+      <div class="help">Words like &ldquo;required&rdquo;, &ldquo;preferred&rdquo; and &ldquo;a plus&rdquo; decide whether a skill is a must-have, preferred or nice to have.</div></div>
+    <button class="btn block lg">Find requirements</button>
+  </form>
+</div>
+{% endblock %}

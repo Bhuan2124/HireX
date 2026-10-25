@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="wrap">
+  <section class="hero">
+    <div>
+      <span class="wordmark">ResumeX</span>
+      <p class="lead">ResumeX uses advanced AI to understand job requirements, analyze resumes, identify
+        relevant skills, and rank candidates based on their suitability, helping recruiters make faster
+        and smarter hiring decisions.</p>
+      <div class="actions">
+        <a href="/register" class="btn lg">Start now</a>
+        <a href="/login" class="btn text">I already have an account</a>
+      </div>
+    </div>
+
+    <div class="preview" aria-label="Example of a ranked shortlist">
+      <div class="ph"><span><strong>Machine Learning Engineer</strong></span><span>48 resumes ranked</span></div>
+      <div class="pv-row">
+        <span class="rk">1</span>
+        <div><div class="nm">Ananya Rao</div>
+          <div class="pv-ev">&ldquo;Deployed <mark>PyTorch</mark> models serving 2M requests a day&rdquo;</div></div>
+        <span class="pc">94%</span>
+      </div>
+      <div class="pv-row">
+        <span class="rk">2</span>
+        <div><div class="nm">Rahul Menon</div>
+          <div class="pv-ev">&ldquo;Built <mark>machine learning</mark> pipelines in <mark>Python</mark> and SQL&rdquo;</div></div>
+        <span class="pc">91%</span>
+      </div>
+      <div class="pv-row">
+        <span class="rk">3</span>
+        <div><div class="nm">Priya Iyer</div>
+          <div class="pv-ev">&ldquo;Fine-tuned transformer models for <mark>NLP</mark> classification&rdquo;</div></div>
+        <span class="pc">88%</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="flow">
+    <div><span class="n">1</span><h4>Describe the role</h4>
+      <p>Paste the job description. ResumeX pulls out the skills, experience and education it asks for, and you decide what matters most.</p></div>
+    <div><span class="n">2</span><h4>Upload resumes</h4>
+      <p>Drop in PDF, Word or text resumes, as many as you have. Each one is read, parsed and compared with the role by meaning, not just keywords.</p></div>
+    <div><span class="n">3</span><h4>Review the ranking</h4>
+      <p>Open any candidate to see why they ranked where they did, with the lines from their resume that support every match.</p></div>
+  </section>
+</div>
+{% endblock %}

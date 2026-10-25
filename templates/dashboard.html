@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% set nav = 'jobs' %}
+{% block title %}Your jobs &ndash; ResumeX{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="page-head spread">
+    <div>
+      <h2>Your jobs</h2>
+      <p class="muted" style="margin:0">
+        {% if cards %}{{ cards|length }} open role{{ '' if cards|length == 1 else 's' }}. Open one to see its ranking.
+        {% else %}Create a job to start screening resumes.{% endif %}</p>
+    </div>
+    <a href="/jobs/new" class="btn">Create job</a>
+  </div>
+
+  {% if not cards %}
+  <div class="panel empty">
+    <h3>No jobs yet</h3>
+    <p>Paste a job description and ResumeX will pull out the requirements. You can review and adjust them before uploading any resumes.</p>
+    <a href="/jobs/new" class="btn">Create your first job</a>
+  </div>
+  {% else %}
+  <div class="joblist">
+    {% for c in cards %}
+    <div class="job">
+      <div>
+        <h3><a href="{{ '/jobs/%d/results'|format(c.job.id) if c.total else '/jobs/%d/upload'|format(c.job.id) }}">{{ c.job.title }}</a></h3>
+        <div class="meta">
+          {% if c.job.company %}<span>{{ c.job.company }}</span>{% endif %}
+          {% if c.job.location %}<span>{{ c.job.location }}</span>{% endif %}
+          <span>{{ c.job.employment_type }}</span>
+          <span>{{ c.job.category|field }}</span>
+        </div>
+      </div>
+      <div class="stat"><div class="v num">{{ c.total }}</div><div class="k">resumes</div></div>
+      <div class="stat"><div class="v num">{{ c.shortlisted }}</div><div class="k">shortlisted</div></div>
+      <div class="stat"><div class="v num">{% if c.total %}{{ c.best }}%{% else %}&ndash;{% endif %}</div><div class="k">best match</div></div>
+      <div class="acts">
+        {% if c.total %}
+          <a href="/jobs/{{ c.job.id }}/results" class="btn sm">Ranking</a>
+          <a href="/jobs/{{ c.job.id }}/analytics" class="btn quiet sm">Analytics</a>
+        {% else %}
+          <a href="/jobs/{{ c.job.id }}/upload" class="btn sm">Upload resumes</a>
+        {% endif %}
+        <a href="/jobs/{{ c.job.id }}/requirements" class="btn quiet sm">Edit</a>
+        <form method="post" action="/jobs/{{ c.job.id }}/delete"
+              onsubmit="return confirm('Delete {{ c.job.title|e }} and all of its candidates?')">
+          <button class="btn text sm" aria-label="Delete {{ c.job.title }}">Delete</button></form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

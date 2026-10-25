@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Analytics for {{ job.title }} &ndash; ResumeX{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="page-head">
+    <a class="back" href="/jobs/{{ job.id }}/results">Back to ranking</a>
+    <h2>Screening analytics</h2>
+    <p class="muted" style="margin:0">{{ job.title }}</p>
+  </div>
+
+  <div class="kpis">
+    <div><div class="v num">{{ total }}</div><div class="k">Resumes screened</div></div>
+    <div><div class="v num">{{ eligible }}</div><div class="k">Meet hard filters</div></div>
+    <div><div class="v num">{{ avg }}%</div><div class="k">Average match</div></div>
+    <div><div class="v num">{{ job.requirements|length }}</div><div class="k">Requirements</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <h3>Recruitment funnel</h3>
+      {% for stage, n in funnel %}
+      <div class="hbar"><div class="hl"><span>{{ stage }}</span><strong class="num">{{ n }}</strong></div>
+        <div class="meter"><i style="width:{{ (n / total * 100) if total else 0 }}%"></i></div></div>
+      {% endfor %}
+    </div>
+    <div class="panel">
+      <h3>Match scores</h3>
+      {% for label, n in dist %}
+      <div class="hbar"><div class="hl"><span>{{ label }}</span><strong class="num">{{ n }}</strong></div>
+        <div class="meter {{ 'strong' if loop.index <= 3 else ('fair' if loop.index <= 5 else 'weak') }}">
+          <i style="width:{{ (n / peak * 100) if peak else 0 }}%"></i></div></div>
+      {% endfor %}
+    </div>
+    <div class="panel">
+      <h3>Skills candidates have most</h3>
+      <table class="data">{% for skill, n in top_skills %}<tr><td>{{ skill }}</td><td class="right num muted">{{ n }}</td></tr>{% endfor %}</table>
+    </div>
+    <div class="panel">
+      <h3>Skills candidates lack most</h3>
+      {% if top_gaps %}
+      <table class="data">{% for skill, n in top_gaps %}<tr><td>{{ skill }}</td><td class="right num muted">{{ n }} missing</td></tr>{% endfor %}</table>
+      {% else %}<p class="muted">No gaps recorded.</p>{% endif %}
+    </div>
+  </div>
+
+  <div class="engine">
+    <span class="dot {{ '' if sbert.loaded else 'off' }}"></span>
+    Sentence-BERT {{ sbert.model }} on {{ (sbert.device or '')|upper }}. Weights: skills {{ job.w_skills|pct }}, experience {{ job.w_experience|pct }},
+    education {{ job.w_education|pct }}, overall fit {{ job.w_semantic|pct }}.
+  </div>
+</div>
+{% endblock %}

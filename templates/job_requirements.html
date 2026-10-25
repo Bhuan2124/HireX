@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Requirements for {{ job.title }} &ndash; ResumeX{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="page-head">
+    {% set step = 2 %}{% include "_stepper.html" %}
+    <h2>{{ job.title }}</h2>
+    <p class="muted" style="margin:0">ResumeX found {{ job.requirements|length }} requirement{{ '' if job.requirements|length == 1 else 's' }}. Correct anything it got wrong, then choose what matters most.</p>
+  </div>
+
+  <form method="post" action="/jobs/{{ job.id }}/requirements/update">
+  <div class="grid-main">
+    <div class="stack">
+      <div class="panel">
+        {% if not job.requirements %}
+          <div class="empty" style="padding:30px 0"><h3>No requirements found</h3>
+            <p>The description didn't name any skills ResumeX recognises. Add them below.</p></div>
+        {% endif %}
+        {% for cat in req_categories %}
+          {% set rows = job.requirements|selectattr('category', 'equalto', cat)|list %}
+          {% if rows %}
+          <div class="req-group">
+            <div class="gh"><h3 style="margin:0">{{ cat }}</h3><span class="small muted">{{ rows|length }}</span></div>
+            {% for r in rows %}
+            <div class="req">
+              <div><span class="sk">{{ r.skill }}</span>
+                {% if r.source == 'manual' %}<span class="small faint">added by you</span>{% endif %}</div>
+              <select name="cat_{{ r.id }}" aria-label="Category for {{ r.skill }}">
+                {% for c in req_categories %}<option value="{{ c }}" {{ 'selected' if r.category == c }}>{{ c }}</option>{% endfor %}
+              </select>
+              <input class="imp" type="number" name="imp_{{ r.id }}" value="{{ '%.1f'|format(r.importance) }}"
+                     step="0.1" min="0.1" max="2" aria-label="Importance of {{ r.skill }}" title="Importance, 0.1 to 2">
+              <button class="x" formaction="/jobs/{{ job.id }}/requirements/{{ r.id }}/delete"
+                      formmethod="post" aria-label="Remove {{ r.skill }}" title="Remove">&times;</button>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="panel tight">
+        <p class="section-title">Add a requirement</p>
+        <div class="row" style="align-items:flex-end">
+          <div style="flex:1"><label class="small" for="newskill">Skill</label>
+            <input id="newskill" type="text" name="skill" placeholder="Kubernetes" form="addform"></div>
+          <div style="width:170px"><label class="small" for="newcat">Category</label>
+            <select id="newcat" name="category" form="addform">
+              {% for c in req_categories %}<option>{{ c }}</option>{% endfor %}</select></div>
+          <button class="btn quiet" form="addform">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sticky stack">
+      <div class="panel">
+        <h3>Hard filters</h3>
+        <p class="small muted">Candidates who miss these are moved to a separate list, never deleted, so you can still review them.</p>
+        <div class="two">
+          <div class="field"><label for="minexp">Minimum experience</label>
+            <input id="minexp" type="number" name="min_experience" step="0.5" min="0" value="{{ '%g'|format(job.min_experience) }}">
+            <div class="help">In years</div></div>
+          <div class="field"><label for="minedu">Minimum education</label>
+            <select id="minedu" name="min_education">
+              {% for e in education_levels %}<option value="{{ e }}" {{ 'selected' if job.min_education == e }}>{{ e }}</option>{% endfor %}
+            </select></div>
+        </div>
+
+        <hr class="divider">
+        <h3>What matters most</h3>
+        <div class="stackbar" id="weight-preview" aria-hidden="true" style="margin-bottom:18px">
+          <i></i><i></i><i></i><i></i></div>
+        {% for key, label, val in [('skills','Skills', job.w_skills), ('experience','Experience', job.w_experience),
+                                   ('education','Education', job.w_education), ('semantic','Overall fit (SBERT)', job.w_semantic)] %}
+        <div class="weight">
+          <div class="wl"><label for="w_{{ key }}" style="margin:0">{{ label }}</label>
+            <span id="out_w_{{ key }}" class="num">{{ (val*100)|round|int }}%</span></div>
+          <input id="w_{{ key }}" type="range" name="w_{{ key }}" data-weight min="0" max="100" step="5"
+                 value="{{ (val*100)|round|int }}">
+        </div>
+        {% endfor %}
+        <div class="total" id="weight-total"><span>Total</span><strong class="num">100%</strong></div>
+        <p class="help">Weights are rescaled to 100% when you save, so an uneven total is fine.</p>
+      </div>
+      <button class="btn block lg">Save and upload resumes</button>
+    </div>
+  </div>
+  </form>
+  <form id="addform" method="post" action="/jobs/{{ job.id }}/requirements/add"></form>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+# ResumeX - install in this order (see the build guide):
+#   1. pip install torch --index-url https://download.pytorch.org/whl/cpu
+#   2. pip install -r requirements.txt
+#   3. python tools/download_model.py
+
+# --- web app ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+jinja2==3.1.5
+python-multipart==0.0.20
+sqlalchemy==2.0.36
+itsdangerous==2.2.0
+
+# --- resume parsing ---
+PyMuPDF==1.25.2
+python-docx==1.1.2
+# --- OCR for scanned PDFs / image resumes ---
+# RapidOCR runs on onnxruntime and ships its models inside the package:
+# nothing else to download or install.
+rapidocr_onnxruntime==1.4.4; python_version < "3.13"   # Python 3.8-3.12
+wordninja==2.0.0
+Pillow>=10.4
+# Optional, slightly more accurate: if the Tesseract program is installed
+# (Windows: https://github.com/UB-Mannheim/tesseract/wiki) it is used instead.
+pytesseract==0.3.13
+
+# --- semantic matching (REQUIRED - ResumeX runs on Sentence-BERT) ---
+sentence-transformers==3.3.1
+
+# --- machine learning ---
+scikit-learn==1.6.0
+pandas==2.2.3
+numpy==2.2.1
+joblib==1.4.2
+
+# --- Postgres (used when DATABASE_URL points at one, e.g. Railway Postgres) ---
+psycopg2-binary==2.9.10
+
+# --- MySQL only (skip for the default SQLite) ---
+# pymysql==1.1.1
+# cryptography==44.0.0
