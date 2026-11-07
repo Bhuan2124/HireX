@@ -1,0 +1,10 @@
+Sneha Kulkarni
+sneha.k@gmail.com
+Education
+B.E. Computer Science, 2026
+Projects
+Hostel Complaint Portal
+Built a Java Spring Boot web app with MySQL where 400 students log complaints. github.com/sneha/hostel
+Expense Tracker
+Android app in Kotlin to track daily expenses.
+Skills: Java, Spring Boot, MySQL, Kotlin

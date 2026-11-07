@@ -1,0 +1,14 @@
+Rahul Menon
+rahul.m@gmail.com | Kochi
+
+Experience
+Java Intern - TCS, Chennai (May 2025 - Jul 2025)
+- Fixed bugs in a Spring MVC application
+- Wrote SQL queries for reports
+
+Academic Projects
+1. Online Voting System - Java, JSP, MySQL. Built a voting portal for college elections with 1200 votes cast.
+2. Chat app - Socket programming in Java.
+
+Education
+B.E. Information Science, 2026

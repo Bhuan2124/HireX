@@ -1,0 +1,30 @@
+Anu Reddy
+anu.reddy@yahoo.com | +91 98450 12345 | Bengaluru
+
+Career Objective
+Final year B.Tech Computer Science student looking for a Java developer role.
+
+Education
+B.Tech in Computer Science, RV College of Engineering, 2022 - 2026, CGPA 8.4
+
+Internships
+Software Development Intern, Infosys
+Jun 2025 - Nov 2025
+Built REST APIs in Java and Spring Boot for an internal HR portal. Wrote JUnit tests and used MySQL.
+
+Web Development Intern, StartupX
+Jan 2025 - Mar 2025
+Worked on React front end pages.
+
+Projects
+Library Management System
+Developed a Spring Boot and MySQL application with REST API and JWT login used by 300 students. Deployed on AWS. github.com/ananya/library
+
+Movie Recommender
+Trained a collaborative filtering model in Python with 87% precision.
+
+Portfolio Website
+Personal website in HTML and CSS.
+
+Skills
+Java, Spring Boot, MySQL, React, Python, Git, Docker

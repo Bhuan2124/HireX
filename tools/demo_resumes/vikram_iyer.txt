@@ -1,0 +1,9 @@
+Vikram Iyer
+vikram.iyer@gmail.com
+Java Developer
+Experience
+Java Developer, Infosys   Jul 2021 - Present
+Built Spring Boot microservices with MySQL and Docker for banking clients. Wrote JUnit tests.
+Education
+B.Tech Computer Science 2021
+Skills: Java, Spring Boot, MySQL, Docker, Git
