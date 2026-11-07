@@ -3,7 +3,23 @@ from fastapi.templating import Jinja2Templates
 
 from app.config import BASE_DIR
 
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+class _Templates(Jinja2Templates):
+    """Accepts both ways of calling TemplateResponse.
+
+    The routers use the older form TemplateResponse("page.html", {"request": ...}).
+    Newer Starlette versions (pulled in by newer FastAPI, e.g. on Hugging Face)
+    only accept TemplateResponse(request, "page.html", {...}); this converts.
+    """
+
+    def TemplateResponse(self, *args, **kwargs):  # noqa: N802 (Starlette's name)
+        if args and isinstance(args[0], str):
+            name, context, *rest = args
+            context = dict(context or {})
+            return super().TemplateResponse(context.get("request"), name, context, *rest, **kwargs)
+        return super().TemplateResponse(*args, **kwargs)
+
+
+templates = _Templates(directory=str(BASE_DIR / "templates"))
 
 
 def pct(value):
