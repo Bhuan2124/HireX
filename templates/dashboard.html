@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% set nav = 'jobs' %}
+{% block title %}Your jobs &ndash; HireX{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="page-head spread">
+    <div>
+      <h2>Your jobs</h2>
+      <p class="muted" style="margin:0">
+        {% if cards %}{{ cards|length }} job{{ '' if cards|length == 1 else 's' }}. Candidates apply until the deadline; the ranking is final after it.
+        {% else %}Post a job and candidates can start applying.{% endif %}</p>
+    </div>
+    <a href="/jobs/new" class="btn">Post a job</a>
+  </div>
+
+  {% if request.query_params.get('posted') %}
+  <div class="alert info">Your job is live. Candidates can find it under <strong>Find jobs</strong> and apply until the deadline.</div>
+  {% endif %}
+
+  {% if not cards %}
+  <div class="panel empty">
+    <h3>No jobs yet</h3>
+    <p>Paste a job description and HireX will pull out the requirements. Set the openings and a deadline, then candidates can apply.</p>
+    <a href="/jobs/new" class="btn">Post your first job</a>
+  </div>
+  {% else %}
+  <div class="joblist">
+    {% for c in cards %}
+    {% set j = c.job %}
+    <div class="job">
+      <div>
+        <h3><a href="/jobs/{{ j.id }}/results">{{ j.title }}</a>
+          {% if j.is_open %}<span class="tag strong">Open</span>{% else %}<span class="tag">Closed</span>{% endif %}</h3>
+        <div class="meta">
+          {% if j.company %}<span>{{ j.company }}</span>{% endif %}
+          {% if j.location %}<span>{{ j.location }}</span>{% endif %}
+          <span>{{ j.employment_type }}</span>
+          <span>{{ {'Fresher':'Freshers','Experienced':'Experienced','Any':'Any level'}[j.experience_level or 'Any'] }}</span>
+          <span>{{ j.openings }} opening{{ '' if j.openings == 1 else 's' }}</span>
+        </div>
+        <div class="meta" style="margin-top:4px">
+          {% if j.apply_until %}
+            {% if j.is_open %}<span>Deadline {{ j.apply_until|when }} &middot; {{ j.days_left }} day{{ '' if j.days_left == 1 else 's' }} left</span>
+            {% else %}<span>Closed {{ j.apply_until|when }} &middot; ranking is final</span>{% endif %}
+          {% endif %}
+        </div>
+      </div>
+      <div class="stat"><div class="v num">{{ c.total }}</div><div class="k">applicants</div></div>
+      <div class="stat"><div class="v num">{{ c.shortlisted }}</div><div class="k">shortlisted</div></div>
+      <div class="stat"><div class="v num">{% if c.total %}{{ c.best }}%{% else %}&ndash;{% endif %}</div><div class="k">best match</div></div>
+      <div class="acts">
+        <a href="/jobs/{{ j.id }}/results" class="btn sm">Ranking</a>
+        {% if c.total %}<a href="/jobs/{{ j.id }}/analytics" class="btn quiet sm">Analytics</a>{% endif %}
+        <a href="/jobs/{{ j.id }}/requirements" class="btn quiet sm">Edit</a>
+        <form method="post" action="/jobs/{{ j.id }}/delete"
+              onsubmit="return confirm('Delete {{ j.title|e }} and all of its applications?')">
+          <button class="btn text sm" aria-label="Delete {{ j.title }}">Delete</button></form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

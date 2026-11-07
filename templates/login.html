@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Log in to HireX{% endblock %}
+{% block content %}
+<div class="auth">
+  <a class="wordmark" href="/">HireX</a>
+  <h2>Log in</h2>
+  <nav class="seg role-tabs" aria-label="Account type">
+    <a href="/login?role=candidate" class="{{ 'on' if role == 'candidate' }}">Candidate</a>
+    <a href="/login?role=recruiter" class="{{ 'on' if role == 'recruiter' }}">Recruiter</a>
+  </nav>
+  <p class="muted">{{ 'Pick up where you left off with your jobs and rankings.' if role == 'recruiter'
+                      else 'See your applications, results and feedback.' }}</p>
+  {% if error %}<div class="alert bad">{{ error }}</div>{% endif %}
+  <form method="post" action="/login" class="panel" style="margin-top:20px">
+    <input type="hidden" name="role" value="{{ role }}">
+    <div class="field"><label for="email">Email</label>
+      <input id="email" type="email" name="email" value="{{ email or '' }}" autocomplete="email" required autofocus></div>
+    <div class="field"><label for="password">Password</label>
+      <input id="password" type="password" name="password" autocomplete="current-password" required></div>
+    <button class="btn block">Log in as {{ role }}</button>
+  </form>
+  <p class="small muted center" style="margin-top:18px">New to HireX? <a href="/register?role={{ role }}">Create a {{ role }} account</a></p>
+</div>
+{% endblock %}

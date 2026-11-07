@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }}: my application &ndash; HireX{% endblock %}
+{% block content %}
+{% set found = evidence|rejectattr('status', 'equalto', 'Missing')|list %}
+{% set missing = evidence|selectattr('status', 'equalto', 'Missing')|list %}
+<div class="wrap">
+  <div class="page-head">
+    <a class="back" href="/my/applications">Back to my applications</a>
+    <div class="cand-head">
+      <div>
+        <h2>{{ job.title }}</h2>
+        <div class="meta">
+          {% if job.company %}<span>{{ job.company }}</span>{% endif %}
+          {% if job.location %}<span>{{ job.location }}</span>{% endif %}
+          <span>Applied {{ c.created_at|when }} with {{ c.file_name }}</span>
+        </div>
+      </div>
+      <div class="scorebox">
+        {% if released %}
+          <div class="score-xl num">#{{ fb.rank }}</div>
+          <div class="band">of {{ fb.total }} applicants &middot; {{ c.match_percent }}% match</div>
+        {% else %}
+          <div class="score-xl num" data-count="{{ c.match_percent }}">{{ c.match_percent }}%</div>
+          <div class="band {{ 'weak' if c.fit_label == 'Not eligible' else c.overall_score|band }}">{{ c.fit_label or 'Your match' }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if new %}<div class="alert good"><strong>Application submitted.</strong> The recruiter can see it now. Your rank is shown after the deadline, {{ job.apply_until|when }}.</div>{% endif %}
+
+  <div class="status-banner {{ status.key }}">
+    <div>
+      <div class="st-title">{{ status.title }}</div>
+      <div>{{ status.message }}</div>
+      {% if released and c.decision_note %}<div class="st-note">Note from the recruiter: &ldquo;{{ c.decision_note }}&rdquo;</div>{% endif %}
+    </div>
+  </div>
+
+  {% if not released %}
+  {# ---------------------------------------------------------------- before the deadline #}
+  <div class="grid-main">
+    <div class="stack">
+      <div class="panel">
+        <h3>Your resume against this job</h3>
+        {% for e in found %}
+        <div class="gap"><div><strong>&check; {{ e.skill }}</strong> <span class="small muted">{{ e.requirement_type }}</span></div>
+          <span class="tag {{ e.status|lower }}">{{ 'Strong evidence' if e.status == 'Strong' else 'Mentioned once' }}</span></div>
+        {% endfor %}
+        {% for e in missing %}
+        <div class="gap"><div><strong>&times; {{ e.skill }}</strong> <span class="small muted">{{ e.requirement_type }}</span></div>
+          <span class="tag missing">Not found</span></div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="stack sticky">
+      <div class="panel">
+        <h3>Your rank</h3>
+        <p class="muted" style="margin:0">Hidden until applications close on <strong>{{ job.apply_until|when }}</strong>.
+          Other people are still applying, so a rank now would keep changing. After the deadline you'll see your final rank,
+          the interview zone, and exactly why you were or weren't selected.</p>
+      </div>
+      <div class="panel">
+        <h3>Your {{ c.match_percent }}% match</h3>
+        {% for p in parts %}
+        <div class="hbar"><div class="hl"><span>{{ p.label }}</span><span class="num">{{ p.match }}%</span></div>
+          <div class="meter {{ (p.match/100)|band }}"><i style="width:{{ p.match }}%"></i></div></div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  {# ---------------------------------------------------------------- after the deadline #}
+  <div class="kpis">
+    <div><div class="v num">#{{ fb.rank }}</div><div class="k">your final rank</div></div>
+    <div><div class="v num">{{ fb.total }}</div><div class="k">applicants</div></div>
+    <div><div class="v num">Top {{ fb.zone }}</div><div class="k">considered for interview</div></div>
+    <div>
+      {% if fb.in_zone %}<div class="v" style="color:var(--strong)">Inside</div><div class="k">you were in the interview zone</div>
+      {% elif fb.places_away is not none %}<div class="v num">{{ fb.places_away }}</div><div class="k">place{{ '' if fb.places_away == 1 else 's' }} away from the zone</div>
+      {% else %}<div class="v" style="color:var(--weak)">Filtered</div><div class="k">minimum requirement not met</div>{% endif %}
+    </div>
+  </div>
+
+  <div class="grid-main">
+    <div class="stack">
+      <div class="panel why">
+        <h3>{{ 'Why not higher?' if fb.in_zone else 'Why not me?' }}</h3>
+        <p class="muted small">Worked out from the same score the recruiter sees. Other applicants are never named.</p>
+
+        {% if fb.filter_reason %}
+        <div class="why-item bad"><strong>A minimum requirement wasn't met.</strong>
+          {{ fb.filter_reason[:1]|upper }}{{ fb.filter_reason[1:] }}. Applicants who miss a minimum requirement are ranked below everyone who meets it.</div>
+        {% endif %}
+
+        {% if fb.behind %}
+        <p class="section-title" style="margin-top:18px">Where you were behind the interview zone</p>
+        <p class="small muted" style="margin-top:-4px">You scored {{ c.match_percent }}%. The top {{ fb.zone }} averaged {{ fb.zone_avg }}%, and the last place in the zone scored {{ fb.cutoff }}%.</p>
+        <table class="data">
+          <tr><th>Part of the score</th><th class="right">You</th><th class="right">Zone average</th><th class="right">Points behind</th></tr>
+          {% for b in fb.behind %}
+          <tr><td>{{ b.label }}</td><td class="right num">{{ b.my_match }}%</td><td class="right num">{{ b.zone_match }}%</td>
+            <td class="right num" style="color:var(--weak)">&minus;{{ b.gap }}</td></tr>
+          {% endfor %}
+        </table>
+        {% endif %}
+
+        {% if fb.gains %}
+        <p class="section-title" style="margin-top:22px">What would have moved you up</p>
+        {% for g in fb.gains %}
+        <div class="gap">
+          <div><strong>{{ g.skill }}</strong> <span class="small muted">{{ g.category }} &middot; not found in your resume</span>
+            <div class="rel">{% if g.rank and g.rank < fb.rank %}With evidence of {{ g.skill }} you would have ranked around <strong>#{{ g.rank }}</strong>{% if g.rank <= fb.zone %}, inside the interview zone{% endif %}.{% elif g.rank %}A small gain: on its own it wouldn't have changed your rank.{% else %}Would add points, but you'd stay below eligible applicants until the requirement above is met.{% endif %}
+              {% if g.related %} You list {{ g.related }}, a related skill: say so if you've used {{ g.skill }} too.{% endif %}</div></div>
+          <span class="gain num">+{{ g.gain }} pts</span>
+        </div>
+        {% endfor %}
+        {% elif not fb.filter_reason %}
+        <p class="muted" style="margin-top:16px">Your resume already shows every skill this job asked for. The difference came from {{ fb.behind[0].label|lower if fb.behind else 'small differences across the score' }}.</p>
+        {% endif %}
+
+        {% if job.weights.practical > 0 and pdetail.notes %}
+        <p class="section-title" style="margin-top:22px">Internships and projects</p>
+        <ul class="notes">{% for n in pdetail.notes %}<li>{{ n }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+
+      {% if fb.strong %}
+      <div class="panel">
+        <h3>What worked in your favour</h3>
+        {% for e in fb.strong %}
+        <div class="ev"><div class="eh"><h4>&check; {{ e.skill }}</h4><span class="tag {{ e.status|lower }}">{{ 'Strong evidence' if e.status == 'Strong' else 'Mentioned once' }}</span></div>
+          {% if e.evidence %}<div class="quote">{{ e.evidence|highlight(e.matched_surface) }}</div>{% endif %}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="stack sticky">
+      <div class="panel">
+        <h3>How your {{ c.match_percent }}% adds up</h3>
+        {% for p in fb.mine %}
+        <div class="hbar"><div class="hl"><span>{{ p.label }} <span class="faint">&middot; weight {{ p.weight }}%</span></span><span class="num">{{ p.points }} pts</span></div>
+          <div class="meter {{ (p.match/100)|band }}"><i style="width:{{ p.match }}%"></i></div></div>
+        {% endfor %}
+      </div>
+      <div class="panel">
+        <h3>For your next application</h3>
+        <ul class="notes" style="margin:0">
+          {% if fb.gains %}<li>Add <strong>{{ fb.gains[0].skill }}</strong> to a project or job description if you've used it. A skill inside real work counts more than one in a list.</li>{% endif %}
+          {% if job.weights.practical > 0 and not (pdetail.projects or []) %}<li>Add a Projects section. Freshers are scored on what they built.</li>{% endif %}
+          {% if (pdetail.projects or []) and not ((pdetail.projects or [])|selectattr('link')|list) %}<li>Add a GitHub or live link to your best project.</li>{% endif %}
+          {% if (pdetail.projects or []) and not ((pdetail.projects or [])|selectattr('result')|list) %}<li>State a result in numbers: accuracy, users, time saved.</li>{% endif %}
+          <li>Check your match before applying, so you know what's missing while you can still fix it.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

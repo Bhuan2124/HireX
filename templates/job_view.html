@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} &ndash; HireX{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="page-head">
+    <a class="back" href="/find-jobs">Back to jobs</a>
+    <div class="spread" style="align-items:flex-end">
+      <div>
+        <h2>{{ job.title }}</h2>
+        <div class="meta">
+          {% if job.company %}<span>{{ job.company }}</span>{% endif %}
+          {% if job.location %}<span>{{ job.location }}</span>{% endif %}
+          <span>{{ job.employment_type }}</span>
+          <span>{{ {'Fresher':'Freshers welcome','Experienced':'Experienced professionals','Any':'Any level'}[job.experience_level or 'Any'] }}</span>
+          <span>{{ job.openings }} opening{{ '' if job.openings == 1 else 's' }}</span>
+          <span>{{ applicants }} applicant{{ '' if applicants == 1 else 's' }} so far</span>
+        </div>
+      </div>
+      <div class="right">
+        {% if job.is_open %}<div class="score-md num">{{ job.days_left }} day{{ '' if job.days_left == 1 else 's' }} left</div>
+          <div class="small muted">Apply by {{ job.apply_until|when }}</div>
+        {% else %}<div class="score-md">Closed</div><div class="small muted">{{ job.apply_until|when }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if error %}<div class="alert bad">{{ error }}</div>{% endif %}
+
+  <div class="grid-main">
+    <div class="stack">
+      <div class="panel">
+        <h3>What this job asks for</h3>
+        {% for cat, rows in groups %}
+        <div class="req-group">
+          <p class="section-title">{{ cat }}</p>
+          <div class="chips">{% for r in rows %}<span class="tag {{ {'Must Have':'must','Preferred':'pref','Nice to Have':'nice'}[cat] }}">{{ r.skill }}</span>{% endfor %}</div>
+        </div>
+        {% endfor %}
+        <table class="facts" style="margin-top:20px">
+          {% if job.experience_level != 'Fresher' and job.min_experience %}<tr><td class="muted">Minimum experience</td><td>{{ job.min_experience|years }}</td></tr>{% endif %}
+          {% if job.min_education and job.min_education != 'Any' %}<tr><td class="muted">Minimum education</td><td>{{ job.min_education }}</td></tr>{% endif %}
+          {% if job.experience_level == 'Fresher' %}<tr><td class="muted">Freshers</td><td>Internships and projects count</td></tr>{% endif %}
+        </table>
+      </div>
+      {% if job.description %}
+      <div class="panel">
+        <h3>Job description</h3>
+        <div class="jd">{{ job.description }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="stack sticky">
+      {% if application %}
+      <div class="panel">
+        <h3>You've applied</h3>
+        <p class="muted">You applied on {{ application.created_at|when }}. Each job takes one application, so your resume for this job can't be changed.</p>
+        <a href="/my/applications/{{ application.id }}" class="btn block">View my application</a>
+      </div>
+      {% elif not job.is_open %}
+      <div class="panel"><h3>Applications closed</h3><p class="muted" style="margin:0">This job stopped taking applications on {{ job.apply_until|when }}.</p></div>
+      {% else %}
+      <div class="panel">
+        <h3>Check your match</h3>
+        <p class="muted small">Upload your resume to see how well it fits this job and what's missing. <strong>Nothing is sent to the recruiter</strong> until you press Apply on the next screen.</p>
+        <form method="post" action="/find-jobs/{{ job.id }}/check" enctype="multipart/form-data" id="check-form">
+          <div class="drop small-drop" id="dropzone" tabindex="0" role="button" aria-label="Choose your resume">
+            <strong id="file-count">Choose your resume</strong>
+            <p class="small">PDF, Word (.docx), text or image, up to {{ max_mb }} MB</p>
+            <input type="file" id="file-input" name="resume" accept=".pdf,.docx,.txt,.png,.jpg,.jpeg" hidden required>
+          </div>
+          <div class="files" id="filelist"></div>
+          <button class="btn block lg" id="start-screening" style="margin-top:14px" disabled>Check my match</button>
+        </form>
+        <p class="help">You can apply only once per job, so make sure this is the resume you want to send.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

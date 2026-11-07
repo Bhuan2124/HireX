@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Notifications &ndash; HireX{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <div class="page-head">
+    <h2>Notifications</h2>
+  </div>
+  {% if not items %}
+  <div class="panel empty"><h3>Nothing yet</h3><p>Updates about applications and deadlines appear here.</p></div>
+  {% else %}
+  <div class="joblist">
+    {% for n in items %}
+    <a class="note-row {{ 'unread' if n.id in unread_ids }}" href="{{ n.link or '#' }}">
+      <span>{{ n.text }}</span><span class="small faint">{{ n.created_at|when }}</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

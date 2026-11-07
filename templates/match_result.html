@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Your match for {{ job.title }} &ndash; HireX{% endblock %}
+{% block content %}
+{% set bad = m.label == 'Not eligible' %}
+{% set found = m.requirements|selectattr('found')|list %}
+{% set missing = m.requirements|rejectattr('found')|list %}
+<div class="wrap">
+  <div class="page-head">
+    <a class="back" href="/find-jobs/{{ job.id }}">Back to the job</a>
+    <div class="cand-head">
+      <div>
+        <h2>Your match for {{ job.title }}</h2>
+        <div class="meta"><span>{{ check.file_name }}</span>{% if job.company %}<span>{{ job.company }}</span>{% endif %}<span>Not sent to the recruiter yet</span></div>
+      </div>
+      <div class="scorebox">
+        <div class="score-xl num" data-count="{{ m.overall }}">{{ m.overall }}%</div>
+        <div class="band {{ 'weak' if bad else (m.overall/100)|band }}">{{ m.label }}</div>
+      </div>
+    </div>
+  </div>
+
+  {% if bad %}
+  <div class="alert bad"><strong>You don't look eligible for this job.</strong> {{ m.reason[:1]|upper }}{{ m.reason[1:] }}.
+    You can still apply, but your application is likely to rank near the bottom.</div>
+  {% elif m.overall >= 70 %}
+  <div class="alert good"><strong>Strong match.</strong> Your resume covers most of what this job asks for.</div>
+  {% endif %}
+  {% if m.used_ocr %}<div class="alert info">Your resume was a scanned image, so it was read with OCR. If something below looks wrong, a text-based PDF or .docx will read more accurately.</div>{% endif %}
+
+  <div class="grid-main">
+    <div class="stack">
+      <div class="panel">
+        <h3>What we found in your resume</h3>
+        {% if not found %}<p class="muted">None of this job's requirements appear in your resume.</p>{% endif %}
+        {% for r in found %}
+        <div class="ev"><div class="eh"><h4>&check; {{ r.skill }}</h4><span class="tag {{ {'Must Have':'must','Preferred':'pref','Nice to Have':'nice'}[r.category] }}">{{ r.category }}</span></div>
+          {% if r.evidence %}<div class="quote">{{ r.evidence }}</div>{% endif %}</div>
+        {% endfor %}
+      </div>
+      <div class="panel">
+        <h3>Missing from your resume</h3>
+        {% if not missing %}<p class="muted" style="margin:0">Nothing. Every requirement is backed by your resume.</p>{% endif %}
+        {% for r in missing %}
+        <div class="gap"><div><strong>&times; {{ r.skill }}</strong> <span class="small muted">{{ r.category }}</span></div></div>
+        {% endfor %}
+        {% if missing %}<p class="help" style="margin-top:12px">If you do have one of these skills, your resume should say so, ideally inside a project or job where you used it. You can only apply once, so this is the moment to update your resume.</p>{% endif %}
+      </div>
+    </div>
+
+    <div class="stack sticky">
+      <div class="panel">
+        <h3>How your {{ m.overall }}% adds up</h3>
+        {% for p in m.parts %}
+        <div class="hbar"><div class="hl"><span>{{ p.label }} <span class="faint">&middot; weight {{ p.weight }}%</span></span><span class="num">{{ p.match }}%</span></div>
+          <div class="meter {{ (p.match/100)|band }}"><i style="width:{{ p.match }}%"></i></div></div>
+        {% endfor %}
+        {% if m.penalty %}<p class="small" style="color:var(--weak)">{{ m.penalty }}</p>{% endif %}
+        {% if m.filter_reason %}<p class="small" style="color:var(--weak)">Minimum requirement not met: {{ m.filter_reason }}.</p>{% endif %}
+        {% if m.practical_notes and (job.weights.practical > 0) %}
+        <p class="section-title" style="margin-top:16px">Internships and projects</p>
+        <ul class="notes">{% for n in m.practical_notes %}<li>{{ n }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+
+      <div class="panel">
+        <h3>Apply with this resume?</h3>
+        <form method="post" action="/find-jobs/{{ job.id }}/apply/{{ check.id }}">
+          <label class="cmp" style="align-items:flex-start; margin-bottom:14px">
+            <input type="checkbox" name="confirm" value="yes" required style="margin-top:3px">
+            <span>I understand I can apply <strong>only once</strong> and can't change this resume afterwards.</span></label>
+          <button class="btn block lg">{{ 'Apply anyway' if bad else 'Apply now' }}</button>
+        </form>
+        <a href="/find-jobs/{{ job.id }}" class="btn quiet block" style="margin-top:10px">Use a different resume</a>
+        <p class="help">Your rank among other applicants is shown after the deadline, {{ job.apply_until|when }}.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

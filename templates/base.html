@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}HireX{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Unbounded:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+{% set nav = nav|default('') %}
+{% if request.session.get('recruiter_id') or request.session.get('candidate_id') %}
+{% set is_rec = request.session.get('recruiter_id') %}
+{% set bell = unread(request) %}
+<header class="topbar">
+  <div class="inner">
+    <a class="wordmark" href="{{ '/dashboard' if is_rec else '/find-jobs' }}">HireX</a>
+    <nav>
+      {% if is_rec %}
+      <a href="/dashboard" class="{{ 'on' if nav == 'jobs' }}">Jobs</a>
+      <a href="/jobs/new" class="{{ 'on' if nav == 'new' }}">Post a job</a>
+      {% else %}
+      <a href="/find-jobs" class="{{ 'on' if nav == 'find' }}">Find jobs</a>
+      <a href="/my/applications" class="{{ 'on' if nav == 'mine' }}">My applications</a>
+      {% endif %}
+    </nav>
+    <div class="user">
+      <a href="/notifications" class="bell {{ 'has' if bell }}" aria-label="Notifications{% if bell %}, {{ bell }} unread{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        {% if bell %}<span class="count num">{{ bell }}</span>{% endif %}
+      </a>
+      <span class="role-chip">{{ 'Recruiter' if is_rec else 'Candidate' }}</span>
+      <span>{{ request.session.get('recruiter_name') or request.session.get('candidate_name','') }}</span>
+      <a href="/logout" class="btn quiet sm">Log out</a>
+    </div>
+  </div>
+</header>
+{% endif %}
+<main>{% block content %}{% endblock %}</main>
+<footer class="foot"><div class="wrap"><span>HireX</span><span>Understand, match, rank, explain. For both sides of hiring.</span></div></footer>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

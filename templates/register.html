@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Create your HireX account{% endblock %}
+{% block content %}
+<div class="auth">
+  <a class="wordmark" href="/">HireX</a>
+  <h2>Create your account</h2>
+  <nav class="seg role-tabs" aria-label="Account type">
+    <a href="/register?role=candidate" class="{{ 'on' if role == 'candidate' }}">I'm looking for a job</a>
+    <a href="/register?role=recruiter" class="{{ 'on' if role == 'recruiter' }}">I'm hiring</a>
+  </nav>
+  <p class="muted">{{ 'One account keeps every job opening and its applicants together.' if role == 'recruiter'
+                      else 'Search jobs, check your match and follow every application in one place.' }}</p>
+  {% if error %}<div class="alert bad">{{ error }}</div>{% endif %}
+  <form method="post" action="/register" class="panel" style="margin-top:20px">
+    <input type="hidden" name="role" value="{{ role }}">
+    <div class="field"><label for="name">Full name</label>
+      <input id="name" type="text" name="name" value="{{ name or '' }}" autocomplete="name" required autofocus></div>
+    <div class="field"><label for="email">{{ 'Work email' if role == 'recruiter' else 'Email' }}</label>
+      <input id="email" type="email" name="email" value="{{ email or '' }}" autocomplete="email" required></div>
+    {% if role == 'recruiter' %}
+    <div class="field"><label for="company">Company <span class="faint">(optional)</span></label>
+      <input id="company" type="text" name="company" value="{{ company or '' }}" autocomplete="organization"></div>
+    {% else %}
+    <div class="two">
+      <div class="field"><label for="phone">Phone <span class="faint">(optional)</span></label>
+        <input id="phone" type="text" name="phone" value="{{ phone or '' }}" autocomplete="tel"></div>
+      <div class="field"><label for="city">City <span class="faint">(optional)</span></label>
+        <input id="city" type="text" name="city" value="{{ city or '' }}" placeholder="Bengaluru"></div>
+    </div>
+    {% endif %}
+    <div class="field"><label for="password">Password</label>
+      <input id="password" type="password" name="password" autocomplete="new-password" minlength="6" required>
+      <div class="help">At least 6 characters.</div></div>
+    <button class="btn block">Create {{ role }} account</button>
+  </form>
+  <p class="small muted center" style="margin-top:18px">Already have an account? <a href="/login?role={{ role }}">Log in</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}My applications &ndash; HireX{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="page-head">
+    <h2>My applications</h2>
+    <p class="muted" style="margin:0">Your rank and feedback appear here once each job's deadline passes.</p>
+  </div>
+
+  {% if not rows %}
+  <div class="panel empty">
+    <h3>No applications yet</h3>
+    <p>Find a job, check your match, and apply. You'll follow every application from here.</p>
+    <a href="/find-jobs" class="btn">Find jobs</a>
+  </div>
+  {% else %}
+  <div class="joblist">
+    {% for r in rows %}
+    {% set c, j, st = r.c, r.job, r.status %}
+    <a class="jobcard" href="/my/applications/{{ c.id }}">
+      <div>
+        <h3>{{ j.title }} <span class="tag {{ {'good':'strong','bad':'missing','wait':'partial','review':''}[st.key] }}">{{ st.title }}</span></h3>
+        <div class="meta">
+          {% if j.company %}<span>{{ j.company }}</span>{% endif %}
+          {% if j.location %}<span>{{ j.location }}</span>{% endif %}
+          <span>Applied {{ c.created_at|when }}</span>
+          <span>{{ 'Deadline ' ~ (j.apply_until|when) if j.is_open else 'Closed ' ~ (j.apply_until|when) }}</span>
+        </div>
+      </div>
+      <div class="right">
+        {% if j.results_released %}
+          <div class="score-md num">#{{ c.rank }}</div><div class="small muted">of {{ j.candidates|length }}</div>
+        {% else %}
+          <div class="score-md num">{{ c.match_percent }}%</div><div class="small muted">your match</div>
+        {% endif %}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Find jobs &ndash; HireX{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="page-head">
+    <h2>Find jobs</h2>
+    <p class="muted" style="margin:0">Open a job to check how well your resume matches before you apply.</p>
+  </div>
+
+  <form method="get" action="/find-jobs" class="panel tight filters">
+    <div class="f-q"><label for="q" class="small">Role or skill</label>
+      <input id="q" type="text" name="q" value="{{ q }}" placeholder="Java developer, Python, data analyst"></div>
+    <div><label for="city" class="small">City</label>
+      <input id="city" type="text" name="city" value="{{ city }}" placeholder="Bengaluru"></div>
+    <div><label for="category" class="small">Field</label>
+      <select id="category" name="category"><option value="">Any field</option>
+        {% for c in categories %}<option value="{{ c }}" {{ 'selected' if c == category }}>{{ c|field }}</option>{% endfor %}</select></div>
+    <div><label for="type" class="small">Type</label>
+      <select id="type" name="type"><option value="">Any type</option>
+        {% for t in types %}<option {{ 'selected' if t == type }}>{{ t }}</option>{% endfor %}</select></div>
+    <div><label for="level" class="small">Level</label>
+      <select id="level" name="level"><option value="">Any level</option>
+        <option value="Fresher" {{ 'selected' if level == 'Fresher' }}>Fresher</option>
+        <option value="Experienced" {{ 'selected' if level == 'Experienced' }}>Experienced</option></select></div>
+    <div class="f-btn">
+      <label class="cmp" style="margin-bottom:8px"><input type="checkbox" name="closed" value="1" {{ 'checked' if closed }}> Show closed</label>
+      <button class="btn">Search</button></div>
+  </form>
+
+  <p class="small muted" style="margin:18px 0 10px">{{ jobs|length }} job{{ '' if jobs|length == 1 else 's' }}{% if q or city or category or type or level %} match your search &middot; <a href="/find-jobs">clear</a>{% endif %}</p>
+
+  {% if not jobs %}
+  <div class="panel empty">
+    <h3>No jobs found</h3>
+    <p>Try a broader role, another city, or clear the filters.</p>
+    <a href="/find-jobs" class="btn quiet">Show all open jobs</a>
+  </div>
+  {% else %}
+  <div class="joblist">
+    {% for j in jobs %}
+    <a class="jobcard" href="/find-jobs/{{ j.id }}">
+      <div>
+        <h3>{{ j.title }}
+          {% if j.id in applied %}<span class="tag strong">Applied</span>{% endif %}
+          {% if not j.is_open %}<span class="tag">Closed</span>{% endif %}</h3>
+        <div class="meta">
+          {% if j.company %}<span>{{ j.company }}</span>{% endif %}
+          {% if j.location %}<span>{{ j.location }}</span>{% endif %}
+          <span>{{ j.employment_type }}</span>
+          <span>{{ {'Fresher':'Freshers welcome','Experienced':'Experienced','Any':'Any level'}[j.experience_level or 'Any'] }}</span>
+          <span>{{ j.category|field }}</span>
+        </div>
+        <div class="chips" style="margin-top:8px">
+          {% for r in j.requirements if r.category == 'Must Have' %}{% if loop.index <= 6 %}<span class="chip">{{ r.skill }}</span>{% endif %}{% endfor %}
+        </div>
+      </div>
+      <div class="right">
+        {% if j.is_open %}
+          <div class="score-md num">{{ j.days_left }}</div><div class="small muted">day{{ '' if j.days_left == 1 else 's' }} left</div>
+        {% else %}<div class="small muted">Closed {{ j.apply_until|when }}</div>{% endif %}
+        <div class="small faint" style="margin-top:6px">{{ j.openings }} opening{{ '' if j.openings == 1 else 's' }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

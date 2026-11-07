@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% set nav = 'jobs' %}
+{% block title %}Ranking for {{ job.title }} &ndash; HireX{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="page-head">
+    {% set step = 4 %}{% include "_stepper.html" %}
+    <div class="spread">
+      <div>
+        <h2>Top candidates</h2>
+        <p class="muted" style="margin:0">{{ job.title }}. {{ all_count }} applicant{{ '' if all_count == 1 else 's' }}, {{ eligible }} eligible{% if filtered_out %}, {{ filtered_out }} not eligible{% endif %}.
+          {% if job.is_open %}Applications open until {{ job.apply_until|when }}: this ranking can still change.
+          {% else %}Applications closed {{ job.apply_until|when }}: this ranking is final and candidates can see their rank.{% endif %}</p>
+      </div>
+      <div class="row">
+        <a id="compare-link" data-base="/jobs/{{ job.id }}/compare" href="#" class="btn" style="display:none">Compare selected</a>
+        <a href="/jobs/{{ job.id }}/requirements" class="btn quiet">Adjust weights</a>
+        <a href="/jobs/{{ job.id }}/upload" class="btn quiet">Add resumes</a>
+        {% if all_count %}<a href="/jobs/{{ job.id }}/analytics" class="btn quiet">Analytics</a>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if all_count %}
+  <div class="panel tight decide">
+    <div>
+      <strong>Interview zone: top {{ zone }}</strong>
+      <span class="small muted">{{ job.openings }} opening{{ '' if job.openings == 1 else 's' }}. After the deadline every applicant is shown whether they're inside this zone, and how far away they are.</span>
+    </div>
+    <div class="row" style="flex-wrap:wrap">
+      <form method="post" action="/jobs/{{ job.id }}/shortlist-zone"
+            onsubmit="return confirm('Shortlist the top {{ zone }} eligible applicants?')">
+        <button class="btn sm">Shortlist top {{ zone }}</button></form>
+      <form method="post" action="/jobs/{{ job.id }}/reject-rest" class="row" style="gap:6px"
+            onsubmit="return confirm('Mark everyone without a decision as Not selected?')">
+        <select name="reason" aria-label="Reason" style="padding:6px 8px; font-size:13px; width:auto">
+          {% for r in reject_reasons %}<option {{ 'selected' if r == 'Not a fit for this role' }}>{{ r }}</option>{% endfor %}</select>
+        <button class="btn quiet sm">Reject the rest</button></form>
+    </div>
+  </div>
+  {% if job.is_open %}<p class="help" style="margin:-8px 0 16px">Decisions you make before the deadline are shown to candidates only once applications close.</p>{% endif %}
+  {% endif %}
+
+  <div class="toolbar">
+    <nav class="seg" aria-label="Filter candidates">
+      {% for key, label in [('all','Eligible'),('strong','Strong match'),('gap','Skill gaps'),
+                            ('shortlisted','Shortlisted'),('filtered','Not eligible'),('flagged','Flagged')] %}
+      {% if key != 'flagged' or flagged %}
+      <a href="/jobs/{{ job.id }}/results?view={{ key }}&top={{ top }}" class="{{ 'on' if view == key }}">{{ label }}{% if key == 'flagged' %} <span class="num">{{ flagged }}</span>{% endif %}</a>
+      {% endif %}
+      {% endfor %}
+    </nav>
+    <nav class="seg" aria-label="How many to show">
+      {% for n in [10, 20, 50] %}
+      <a href="/jobs/{{ job.id }}/results?view={{ view }}&top={{ n }}" class="{{ 'on' if top == n }}">Top {{ n }}</a>
+      {% endfor %}
+    </nav>
+    <form method="get" action="/jobs/{{ job.id }}/search" class="search" role="search">
+      <input type="text" name="q" placeholder="Search skills, titles or names" aria-label="Search candidates">
+      <button class="btn quiet sm">Search</button>
+    </form>
+  </div>
+
+  {% if common_gaps %}
+  <div class="gaps"><span>Skills most often missing in this pool:</span>
+    {% for skill, n in common_gaps %}<span class="tag missing">{{ skill }} <span class="num">{{ n }}</span></span>{% endfor %}
+  </div>
+  {% endif %}
+
+  {% if not candidates %}
+  <div class="panel empty">
+    <h3>{{ 'No applicants yet' if not all_count else 'No candidates in this view' }}</h3>
+    <p>{% if not all_count %}Candidates find this job under Find jobs and apply until {{ job.apply_until|when }}. You can also add resumes you received elsewhere.
+       {% elif view == 'shortlisted' %}Shortlist candidates from their page, or shortlist the whole interview zone above.
+       {% elif view == 'filtered' %}Every candidate meets the hard filters.
+       {% else %}Try another filter.{% endif %}</p>
+    {% if not all_count %}<a href="/jobs/{{ job.id }}/upload" class="btn quiet">Add resumes</a>
+    {% else %}<a href="/jobs/{{ job.id }}/results" class="btn quiet">Show eligible candidates</a>{% endif %}
+  </div>
+  {% else %}
+  <div class="ranklist">
+    {% for c in candidates %}
+    {% set b = c.overall_score|band %}
+    {% if view == 'all' and loop.index0 == zone and zone > 0 %}
+    <div class="zone-line"><span>Interview zone ends here &middot; top {{ zone }}</span></div>
+    {% endif %}
+    <div class="cand {{ 'top' if c.rank <= 3 and c.eligible }}">
+      <span class="rk num">{{ c.rank }}</span>
+      <div>
+        <h4><a href="/candidates/{{ c.id }}">{{ c.name }}</a>
+          {% if c.stage in ['Shortlisted', 'Interview', 'Selected'] %}<span class="tag strong">{{ c.stage }}</span>
+          {% elif c.stage == 'Rejected' %}<span class="tag missing">Not selected</span>{% endif %}
+          {% if c.duplicate_of_id %}<span class="tag partial" title="Shares {{ (c.duplicate_similarity*100)|round|int }}% of its wording with another application">Possible copy</span>{% endif %}</h4>
+        <div class="meta">
+          <span>{{ c.current_title or 'Title not found' }}</span>
+          <span>{{ c.years_experience|years }}</span>
+          <span>{{ c.degree or 'Degree not found' }}</span>
+          {% if c.internship_count or c.project_count %}<span>{{ c.internship_count }} internship{{ '' if c.internship_count == 1 else 's' }} &middot; {{ c.project_count }} project{{ '' if c.project_count == 1 else 's' }}</span>{% endif %}
+          <span class="faint">{{ 'Applied on HireX' if c.applied_via == 'platform' else 'Uploaded by you' }}</span>
+        </div>
+        <div class="chips">
+          {% set matched = c.evidence|rejectattr('status', 'equalto', 'Missing')|list %}
+          {% set gaps = c.evidence|selectattr('status', 'equalto', 'Missing')|list %}
+          {% for e in matched[:6] %}<span class="chip hit">{{ e.skill }}</span>{% endfor %}
+          {% if gaps %}<span class="chip">{{ gaps|length }} missing</span>{% endif %}
+        </div>
+        {% if not c.passes_filters %}<div class="flag">Doesn't meet filters: {{ c.filter_reason }}</div>
+        {% elif c.fit_label == 'Not eligible' %}<div class="flag">Not eligible: {{ c.fit_reason }}</div>{% endif %}
+      </div>
+      <div class="sc">
+        <div class="score-lg num">{{ c.match_percent }}%</div>
+        <div class="meter {{ b }}"><i style="width:{{ c.match_percent }}%"></i></div>
+      </div>
+      <div class="acts">
+        <a href="/candidates/{{ c.id }}" class="btn sm">View candidate</a>
+        <label class="cmp"><input type="checkbox" class="cmp-box" value="{{ c.id }}"> Compare</label>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

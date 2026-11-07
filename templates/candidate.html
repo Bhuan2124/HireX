@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}{{ c.name }} for {{ job.title }} &ndash; HireX{% endblock %}
+{% block content %}
+{% set b = c.overall_score|band %}
+<div class="wrap">
+  <div class="page-head">
+    <a class="back" href="/jobs/{{ job.id }}/results">Back to ranking</a>
+    <div class="cand-head">
+      <div>
+        <h2>{{ c.name }}</h2>
+        <div class="meta">
+          <span>{{ c.current_title or 'Title not found' }}</span>
+          {% if c.email %}<span>{{ c.email }}</span>{% endif %}
+          {% if c.phone %}<span>{{ c.phone }}</span>{% endif %}
+          <span>Rank {{ c.rank }} of {{ job.candidates|length }}</span>
+        </div>
+      </div>
+      <div class="scorebox">
+        <div class="score-xl num" data-count="{{ c.match_percent }}">{{ c.match_percent }}%</div>
+        <div class="band {{ b }}">{{ {'strong':'Strong match','fair':'Partial match','weak':'Weak match'}[b] }} for {{ job.title }}</div>
+      </div>
+    </div>
+  </div>
+
+  {% if c.passes_filters and c.fit_label == 'Not eligible' %}
+  <div class="alert bad">Not eligible: {{ c.fit_reason }}. Ranked below every eligible applicant, kept here so you can decide for yourself.</div>
+  {% endif %}
+  {% if not c.passes_filters %}
+  <div class="alert bad">Doesn't meet the hard filters: {{ c.filter_reason }}. Kept here so you can decide for yourself.</div>
+  {% endif %}
+  {% if dup %}
+  <div class="alert bad"><strong>Possible copy.</strong> This resume shares {{ (c.duplicate_similarity*100)|round|int }}% of its wording
+    {{ '(or the same email address)' if c.duplicate_similarity >= 1 }} with <a href="/candidates/{{ dup.id }}">{{ dup.name }}</a>'s application.
+    Two real people rarely describe their work in the same sentences. Worth a look before shortlisting.</div>
+  {% endif %}
+
+  <div class="panel" style="margin-bottom:24px">
+    <div class="spread" style="margin-bottom:14px">
+      <h3 style="margin:0">How the {{ c.match_percent }}% adds up</h3>
+      <span class="small muted">Each part is its match multiplied by the weight you set</span>
+    </div>
+    <div class="stackbar" id="score-bar" role="img"
+         aria-label="{% for r in explain.contributions %}{{ r.label }} {{ r.points }} points. {% endfor %}">
+      {% for r in explain.contributions %}<i data-w="{{ r.points }}"></i>{% endfor %}
+    </div>
+    <div class="legend">
+      {% for r in explain.contributions %}
+      <div>
+        <div class="pts num">{{ r.points }}</div>
+        <div class="lbl">{{ r.label }}</div>
+        <div class="sub">{{ r.match }}% match, weight {{ r.weight }}%</div>
+      </div>
+      {% endfor %}
+    </div>
+    <p style="margin:20px 0 0">{{ explain.explanation }}</p>
+  </div>
+
+  <div class="grid-main">
+    <div class="stack">
+      <div class="panel">
+        <h3>Evidence from the resume</h3>
+        {% set matched = evidence|rejectattr('status', 'equalto', 'Missing')|list %}
+        {% if not matched %}<p class="muted">None of the job's requirements appear in this resume.</p>{% endif %}
+        {% for e in matched %}
+        <div class="ev">
+          <div class="eh">
+            <h4>{{ e.skill }}</h4>
+            <div class="row" style="gap:6px">
+              <span class="tag {{ {'Must Have':'must','Preferred':'pref','Nice to Have':'nice'}[e.requirement_type] }}">{{ e.requirement_type }}</span>
+              <span class="tag {{ e.status|lower }}">{{ 'Strong evidence' if e.status == 'Strong' else 'Mentioned once' }}</span>
+            </div>
+          </div>
+          {% if e.matched_surface %}<div class="found">Matched on &ldquo;{{ e.matched_surface }}&rdquo;, {{ e.mentions }} mention{{ '' if e.mentions == 1 else 's' }}</div>{% endif %}
+          {% if e.evidence %}<div class="quote">{{ e.evidence|highlight(e.matched_surface) }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if job.weights.practical > 0 or practical.internships or practical.projects %}
+      <div class="panel">
+        <div class="spread" style="margin-bottom:6px">
+          <h3 style="margin:0">Practical work: internships and projects</h3>
+          <span class="score-md num">{{ (c.practical_score*100)|round|int }}%</span>
+        </div>
+        {% set is_job = practical.internships and practical.internships[0].kind == 'job' %}
+        <p class="small muted">{{ 'Work experience' if is_job else 'Internships' }} {{ (c.internship_score*100)|round|int }}% &middot; Projects {{ (c.project_score*100)|round|int }}%
+          {% if job.weights.practical == 0 %}&middot; weight 0% for this job, shown for information{% endif %}</p>
+        {% set pi = pdetail.internships or {} %}
+        {% if practical.internships %}
+        <p class="section-title" style="margin-top:14px">{{ 'Work experience (no internship listed)' if practical.internships[0].kind == 'job' else 'Internships' }}</p>
+        {% for e in practical.internships %}
+        <div class="ev">
+          <div class="eh"><h4>{{ e.title }}</h4>
+            <span class="tag">{{ e.months ~ ' month' ~ ('' if e.months == 1 else 's') if e.months is not none else 'dates not found' }}</span></div>
+          <div class="quote">{{ e.text[:320] }}{{ '…' if e.text|length > 320 }}</div>
+        </div>
+        {% endfor %}
+        {% if pi.skills_used %}<p class="small" style="margin:6px 0 0">Job skills used in {{ 'this work' if is_job else 'internships' }}: {% for s in pi.skills_used %}<span class="chip hit">{{ s }}</span> {% endfor %}</p>{% endif %}
+        {% endif %}
+        {% if pdetail.projects %}
+        <p class="section-title" style="margin-top:18px">Projects</p>
+        <table class="data">
+          <tr><th>Project</th><th>Job skills used</th><th>Evidence</th><th class="right">Score</th></tr>
+          {% for r in pdetail.projects|sort(attribute='score', reverse=True) %}
+          <tr><td><strong>{{ r.title }}</strong></td>
+            <td>{% for s in r.skills_used %}<span class="chip hit">{{ s }}</span> {% else %}<span class="faint small">none</span>{% endfor %}</td>
+            <td class="small">{{ 'Link' if r.link }}{{ ' · ' if r.link and r.result }}{{ 'Result' if r.result }}{% if not r.link and not r.result %}<span class="faint">description only</span>{% endif %}</td>
+            <td class="right num">{{ (r.score*100)|round|int }}%</td></tr>
+          {% endfor %}
+        </table>
+        {% endif %}
+        {% if pdetail.notes %}<ul class="notes">{% for n in pdetail.notes %}<li>{{ n }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+      {% endif %}
+
+      <div class="panel">
+        <h3>Skill gaps</h3>
+        {% set missing = evidence|selectattr('status', 'equalto', 'Missing')|list %}
+        {% if not missing %}<p class="muted">No gaps. Every requirement is backed by the resume.</p>{% endif %}
+        {% for e in missing %}
+        <div class="gap">
+          <div>
+            <strong>{{ e.skill }}</strong> <span class="small muted">{{ e.requirement_type }}</span>
+            {% if e.related_skill %}
+            <div class="rel">Has {{ e.related_skill }}, a related skill ({{ (e.related_score*100)|round|int }}% similar by SBERT)</div>
+            {% endif %}
+          </div>
+          {% for u in uplift if u.skill == e.skill and u.gain > 0 %}<span class="gain num">+{{ u.gain }} pts</span>{% endfor %}
+        </div>
+        {% endfor %}
+        {% if uplift %}<p class="help" style="margin-top:12px">Points show how much the overall score would rise if the resume evidenced that skill.</p>{% endif %}
+        {% if above and above.id != c.id %}
+        <hr class="divider">
+        <p class="small muted" style="margin:0">Ranked below <a href="/candidates/{{ above.id }}">{{ above.name }}</a> ({{ above.match_percent }}%), mainly on
+          {{ 'skills' if above.skill_score > c.skill_score else ('experience' if above.experience_score > c.experience_score else 'overall fit') }}.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="stack sticky">
+      <div class="panel">
+        <h3>Decision</h3>
+        <form method="post" action="/candidates/{{ c.id }}/stage" id="decision-form">
+          <input type="hidden" name="back" value="detail">
+          <div class="field"><label for="stage">Stage</label>
+            <select name="stage" id="stage">
+              {% for s in stages %}<option value="{{ s }}" {{ 'selected' if c.stage == s }}>{{ 'Not selected (Rejected)' if s == 'Rejected' else s }}</option>{% endfor %}
+            </select></div>
+          <div class="field" data-show-for="Interview"><label for="iv">Interview date and time</label>
+            <input type="text" id="iv" name="interview_at" value="{{ c.interview_at }}" placeholder="25 Nov, 11:00 AM, Google Meet"></div>
+          <div class="field" data-show-for="Rejected"><label for="reason">Reason shown to the candidate</label>
+            <select name="reason" id="reason">
+              {% for r in reject_reasons %}<option {{ 'selected' if c.decision_reason == r }}>{{ r }}</option>{% endfor %}
+            </select></div>
+          <div class="field"><label for="note">Note to the candidate <span class="faint">(optional)</span></label>
+            <textarea id="note" name="note" style="min-height:80px" placeholder="A line of feedback in your own words">{{ c.decision_note }}</textarea></div>
+          <button class="btn block">Save decision</button>
+          {% if c.applied_via == 'platform' %}
+          <p class="help">{{ 'The candidate is notified straight away.' if job.results_released
+                             else 'The candidate sees this once applications close (' ~ (job.apply_until|when) ~ ').' }}</p>
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="panel">
+        <h3>Profile</h3>
+        <table class="facts">
+          <tr><td class="muted">Experience</td><td>{{ c.years_experience|years }}</td></tr>
+          <tr><td class="muted">Internships</td><td>{{ c.internship_count }}{% if c.internship_months %} &middot; {{ c.internship_months }} mo{% endif %}</td></tr>
+          <tr><td class="muted">Projects</td><td>{{ c.project_count }}</td></tr>
+          <tr><td class="muted">Applied</td><td>{{ 'On HireX' if c.applied_via == 'platform' else 'Uploaded by you' }}</td></tr>
+          <tr><td class="muted">Education</td><td>{{ c.degree or 'Not found' }}</td></tr>
+          {% if c.field_of_study %}<tr><td class="muted">Field of study</td><td>{{ c.field_of_study }}</td></tr>{% endif %}
+          {% if c.predicted_category %}<tr><td class="muted">Background</td><td>{{ c.predicted_category|field }}</td></tr>{% endif %}
+          <tr><td class="muted">SBERT similarity</td><td class="num">{{ '%.3f'|format(c.semantic_raw) }}</td></tr>
+          {% if c.ml_label %}<tr><td class="muted">Model relevance</td><td>{{ c.ml_label }} of 5</td></tr>{% endif %}
+          <tr><td class="muted">Resume file</td><td><a href="/candidates/{{ c.id }}/file">{{ c.file_name }}</a></td></tr>
+        </table>
+        <p class="help" style="margin-top:12px">Experience worked out from {{ c.experience_source.replace('_', ' ') }}.</p>
+      </div>
+
+      {% if c.summary %}<div class="panel"><h3>Summary</h3><p class="muted" style="margin:0">{{ c.summary }}</p></div>{% endif %}
+
+      <div class="panel">
+        <h3>All skills found</h3>
+        <div class="chips">{% for s in c.skill_list %}<span class="chip">{{ s }}</span>{% endfor %}</div>
+      </div>
+
+      {% if c.certifications %}
+      <div class="panel"><h3>Certifications</h3>
+        {% for cert in c.certifications.split(' | ') %}<p class="small" style="margin:0 0 6px">{{ cert }}</p>{% endfor %}</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

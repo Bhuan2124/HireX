@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="wrap">
+  <section class="hero">
+    <div>
+      <span class="wordmark">HireX</span>
+      <p class="lead">HireX uses AI to understand job requirements and resumes, rank every applicant
+        and explain each rank with evidence. Recruiters hire faster and fairer. Candidates see how
+        well they match before applying, and learn exactly why they were or weren't selected.</p>
+      <div class="sides">
+        <a href="/register?role=recruiter" class="side">
+          <span class="k">I'm hiring</span>
+          <strong>Post a job &rarr;</strong>
+          <span class="muted small">Set the deadline, review a ranked, explained shortlist.</span>
+        </a>
+        <a href="/register?role=candidate" class="side">
+          <span class="k">I'm looking for a job</span>
+          <strong>Find jobs &rarr;</strong>
+          <span class="muted small">Check your match before applying. Get honest feedback after.</span>
+        </a>
+      </div>
+      <p class="small muted" style="margin-top:16px">Already have an account?
+        <a href="/login?role=recruiter">Recruiter log in</a> &middot; <a href="/login?role=candidate">Candidate log in</a></p>
+    </div>
+
+    <div class="preview" aria-label="Example of what a candidate sees">
+      <div class="ph"><span><strong>Java Developer</strong> &middot; your application</span><span>Results out</span></div>
+      <div class="pv-big">
+        <div><div class="score-lg num">#8</div><div class="small muted">of 46 applicants</div></div>
+        <div><div class="score-lg num">71%</div><div class="small muted">your match</div></div>
+      </div>
+      <div class="pv-row">
+        <span class="rk">&times;</span>
+        <div><div class="nm">Docker is missing (Must Have)</div>
+          <div class="pv-ev">With Docker evidence you would have ranked around <strong>#4</strong>, inside the interview zone.</div></div>
+        <span class="pc">+9</span>
+      </div>
+      <div class="pv-row">
+        <span class="rk">&check;</span>
+        <div><div class="nm">Strong internship</div>
+          <div class="pv-ev">&ldquo;Built REST APIs in <mark>Java</mark> and <mark>Spring Boot</mark> for an HR portal&rdquo;</div></div>
+        <span class="pc">6 mo</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="flow">
+    <div><span class="n">1</span><h4>Recruiters post a role</h4>
+      <p>Paste the job description. HireX finds the skills, experience and education it asks for. Set openings and an application deadline.</p></div>
+    <div><span class="n">2</span><h4>Candidates check, then apply</h4>
+      <p>Before applying, a candidate sees their match and what's missing. Freshers get credit for internships and projects, not only job years.</p></div>
+    <div><span class="n">3</span><h4>After the deadline, everyone learns why</h4>
+      <p>Recruiters get a ranked, explained list. Every candidate sees their final rank, the decision, and what would have moved them up.</p></div>
+  </section>
+</div>
+{% endblock %}

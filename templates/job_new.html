@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% set nav = 'new' %}
+{% block title %}Post a job &ndash; HireX{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <div class="page-head">
+    {% set step = 1 %}{% include "_stepper.html" %}
+    <h2>Post a job</h2>
+    <p class="muted" style="margin:0">Paste the whole job description. You'll review everything HireX finds on the next screen.</p>
+  </div>
+
+  <form method="post" action="/jobs/new" class="panel">
+    <div class="field"><label for="title">Job title</label>
+      <input id="title" type="text" name="title" placeholder="Java Developer" required autofocus></div>
+    <div class="two">
+      <div class="field"><label for="company">Company</label>
+        <input id="company" type="text" name="company" placeholder="Acme Technologies"></div>
+      <div class="field"><label for="location">Location</label>
+        <input id="location" type="text" name="location" placeholder="Bengaluru, Remote or Hybrid"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="etype">Employment type</label>
+        <select id="etype" name="employment_type">
+          <option>Full-time</option><option>Part-time</option><option>Internship</option><option>Contract</option>
+        </select></div>
+      <div class="field"><label for="cat">Field</label>
+        <select id="cat" name="category">
+          {% for c in categories %}<option value="{{ c }}">{{ c|field }}</option>{% endfor %}
+        </select>
+        <div class="help">Used to tell whether a candidate comes from the same field.</div></div>
+    </div>
+
+    <hr class="divider">
+    <p class="section-title">Hiring settings</p>
+    <div class="two">
+      <div class="field"><label for="level">Who is this job for?</label>
+        <select id="level" name="experience_level">
+          {% for l in levels %}<option value="{{ l }}" {{ 'selected' if l == 'Any' }}>{{ {'Fresher':'Freshers / recent graduates','Experienced':'Experienced professionals','Any':'Anyone'}[l] }}</option>{% endfor %}
+        </select>
+        <div class="help">Fresher jobs score internships and projects instead of job years.</div></div>
+      <div class="field"><label for="openings">Openings</label>
+        <input id="openings" type="number" name="openings" value="1" min="1" max="500">
+        <div class="help">How many people you will hire.</div></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="deadline">Application deadline</label>
+        <input id="deadline" type="datetime-local" name="apply_until" value="{{ default_deadline }}" min="{{ min_deadline }}" required>
+        <div class="help">Candidates can apply until then. Ranks are shown to them only after it.</div></div>
+      <div class="field"><label for="zone">Interview zone <span class="faint">(optional)</span></label>
+        <input id="zone" type="number" name="shortlist_size" value="0" min="0" max="5000">
+        <div class="help">How many top applicants you'll consider. 0 = 3 &times; openings.</div></div>
+    </div>
+
+    <hr class="divider">
+    <div class="field"><label for="desc">Job description</label>
+      <textarea id="desc" name="description" required
+        placeholder="Paste the full job description here, including required skills, nice-to-haves, experience and education."></textarea>
+      <div class="help">Words like &ldquo;required&rdquo;, &ldquo;preferred&rdquo; and &ldquo;a plus&rdquo; decide whether a skill is a must-have, preferred or nice to have.</div></div>
+    <button class="btn block lg">Find requirements</button>
+  </form>
+</div>
+{% endblock %}
