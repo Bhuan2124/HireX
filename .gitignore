@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+hirex.db
+uploads/*
+!uploads/.gitkeep
+data/*.csv
+test_resumes/
+.DS_Store
+
+# Trained models: the two the app uses are committed so the deployed image has
+# them. The Random Forest copy is only needed by ml/evaluate.py and is large.
+ml/models/relevance_random.joblib
+ml/models/relevance_svm.joblib
+ml/models/evaluation_results.csv
+ml/models/training_report.txt
+
+# Sentence-BERT is downloaded during the Docker build, not committed (~90 MB).
+ml/sbert_model/

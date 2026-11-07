@@ -1,0 +1,13 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.git/
+ml/sbert_model/
+ml/models/relevance_random.joblib
+ml/models/relevance_svm.joblib
+data/*.csv
+test_resumes/
+docs/
+uploads/*
+hirex.db

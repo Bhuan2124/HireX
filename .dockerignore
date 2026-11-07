@@ -1,0 +1,23 @@
+# Keep the image small and the build fast.
+.venv/
+venv/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+
+# Downloaded during the build instead
+ml/sbert_model/
+
+# Not needed by the running app
+ml/models/relevance_random.joblib
+ml/models/relevance_svm.joblib
+ml/models/evaluation_results.csv
+ml/models/training_report.txt
+data/*.csv
+test_resumes/
+docs/
+uploads/*
+hirex.db
+*.md
+!README.md
